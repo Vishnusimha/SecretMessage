@@ -13,13 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,12 +38,11 @@ import androidx.core.view.WindowCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vishnu.secretmessage.MainActivity
+import com.vishnu.secretmessage.data.remote.Comment
 import com.vishnu.secretmessage.data.remote.Post
 import com.vishnu.secretmessage.data.remote.PostsResponse
 import com.vishnu.secretmessage.viewmodel.PostViewModel
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreen(postViewModel: PostViewModel, mainActivity: MainActivity) {
 
@@ -76,6 +76,7 @@ fun PostScreen(postViewModel: PostViewModel, mainActivity: MainActivity) {
             fun dismissDialog() {
                 isDialogVisible = false
             }
+
             Text(
                 modifier = Modifier
                     .padding(24.dp)
@@ -88,41 +89,16 @@ fun PostScreen(postViewModel: PostViewModel, mainActivity: MainActivity) {
             LazyColumn(modifier = Modifier.padding(top = 60.dp, bottom = 40.dp)) {
                 items(posts.posts.reversed()) { post ->
                     // Display Post in a Card
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(6.dp)
-                            .clickable {
-
-                            },
-                        shape = RoundedCornerShape(6.dp),
-                        onClick = {
-                            selectedPost.value = post
-                            openDialog()
-                            Log.d(
-                                "PostScreen",
-                                "PostScreen, ${post.id}, ${post.content}, ${post.comments}, ${post.likes}"
+                    PostCard(
+                        selectedPost,
+                        post,
+                        onDeleteComment = { comment ->
+                            postViewModel.deleteCommentInPost(
+                                postId = post.id,
+                                commentId = comment.id
                             )
-                        }
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(16.dp),
-                            text = "Post: ${post.content}",
-                            fontStyle = FontStyle.Normal,
-                            fontFamily = FontFamily.SansSerif,
-                            fontSize = 20.sp
-                        )
-
-                        post.comments.forEach { comment ->
-                            Text(
-                                modifier = Modifier.padding(16.dp),
-                                text = "Comment: ${comment.content}",
-                                fontStyle = FontStyle.Normal,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
+                        },
+                        onPostClick = { openDialog() })
                 }
             }
 
@@ -181,6 +157,55 @@ fun PostScreen(postViewModel: PostViewModel, mainActivity: MainActivity) {
         onDispose {
             WindowCompat.setDecorFitsSystemWindows(mainActivity.window, true)
             mainActivity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun PostCard(
+    selectedPost: MutableState<Post?>,
+    post: Post,
+    onDeleteComment: (Comment) -> Unit,
+    onPostClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(6.dp)
+            .clickable {
+
+            },
+        shape = RoundedCornerShape(6.dp),
+        onClick = {
+            selectedPost.value = post
+            onPostClick()
+            Log.d(
+                "PostScreen",
+                "PostScreen, ${post.id}, ${post.content}, ${post.comments}, ${post.likes}"
+            )
+        }
+    ) {
+        Text(
+            modifier = Modifier.padding(16.dp),
+            text = "Post: ${post.content}",
+            fontStyle = FontStyle.Normal,
+            fontFamily = FontFamily.SansSerif,
+            fontSize = 20.sp
+        )
+
+        post.comments.forEach { comment ->
+            Text(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable {
+                        onDeleteComment(comment)
+                    },
+                text = "Comment: ${comment.content}",
+                fontStyle = FontStyle.Normal,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp
+            )
         }
     }
 }

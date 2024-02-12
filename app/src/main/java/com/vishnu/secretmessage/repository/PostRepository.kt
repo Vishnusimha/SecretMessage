@@ -20,6 +20,10 @@ class PostRepository @Inject constructor(private val postService: PostService) {
         return postService.getCommentsForPost(postId)
     }
 
+    suspend fun deleteCommentInPost(postId: Int, commentId: Int): Any {
+        return postService.deleteComment(postId, commentId)
+    }
+
     suspend fun likePost(postId: Int) {
         postService.likePost(postId)
     }

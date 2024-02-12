@@ -1,6 +1,7 @@
 package com.vishnu.secretmessage.data.remote
 
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -29,4 +30,10 @@ interface PostService {
 
     @GET("post/{post_id}/likes")
     suspend fun getPostLikes(@Path("post_id") postId: Int): LikesResponse
+
+    @DELETE("post/{post_id}/comment/{comment_id}")
+    suspend fun deleteComment(
+        @Path("post_id") postId: Int,
+        @Path("comment_id") commentId: Int
+    ): Any
 }

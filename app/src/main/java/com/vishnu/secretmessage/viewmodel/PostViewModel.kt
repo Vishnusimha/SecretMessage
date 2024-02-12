@@ -37,6 +37,16 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
         }
     }
 
+    fun deleteCommentInPost(postId: Int, commentId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                postRepository.deleteCommentInPost(postId, commentId)
+            } catch (e: Exception) {
+                Log.e("postViewModel", "Error deleting comment: ${e.message}", e)
+            }
+        }
+    }
+
     fun getCommentsForPost(postId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             postRepository.getCommentsForPost(postId)
